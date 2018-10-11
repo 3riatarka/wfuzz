@@ -140,6 +140,7 @@ class View:
         self.colour = session_options["colour"]
         self.verbose = session_options["verbose"]
         self.previous = session_options["previous"]
+        self.wordlists = session_options["payloads"]
         self.term = Term()
 
     def _print_verbose(self, res, print_nres=True):
@@ -195,6 +196,9 @@ class View:
     def header(self, summary):
         print(exec_banner)
         print("Target: %s\r" % summary.url)
+        print "Wordlists:\r"
+        for item in self.wordlists:
+            print "\t- %s\r" % item[1]['default']
         if summary.total_req > 0:
             print("Total requests: %d\r\n" % summary.total_req)
         else:
