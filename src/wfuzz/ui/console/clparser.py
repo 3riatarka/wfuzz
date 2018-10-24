@@ -1,5 +1,6 @@
 import sys
 import getopt
+import os
 from collections import defaultdict
 
 from wfuzz.filter import PYPARSING
@@ -54,7 +55,7 @@ class CLParser:
     def parse_cl(self):
         # Usage and command line help
         try:
-            opts, args = getopt.getopt(self.argv[1:], "hLAZX:vcb:e:R:d:z:r:f:t:w:V:H:m:f:o:s:p:w:u:", ['slice=', 'zP=', 'oF=', 'recipe=', 'dump-recipe=', 'req-delay=', 'conn-delay=', 'sc=', 'sh=', 'sl=', 'sw=', 'ss=', 'hc=', 'hh=', 'hl=', 'hw=', 'hs=', 'ntlm=', 'basic=', 'digest=', 'follow', 'script-help=', 'script=', 'script-args=', 'prefilter=', 'filter=', 'interact', 'help', 'version', 'dry-run', 'prev'])
+            opts, args = getopt.getopt(self.argv[1:], "hLAZX:vcb:e:R:d:z:r:f:t:w:V:H:m:f:o:s:p:w:u:", ['slice=', 'zP=', 'oF=', 'recipe=', 'dump-recipe=', 'req-delay=', 'conn-delay=', 'sc=', 'sh=', 'sl=', 'sw=', 'ss=', 'hc=', 'hh=', 'hl=', 'hw=', 'hs=', 'ntlm=', 'basic=', 'digest=', 'database=', 'follow', 'script-help=', 'script=', 'script-args=', 'prefilter=', 'filter=', 'interact', 'help', 'version', 'dry-run', 'prev'])
             optsd = defaultdict(list)
 
             payload_cache = {}
@@ -119,6 +120,21 @@ class CLParser:
                 print(help_banner)
                 print("Recipe written to %s." % (optsd["--dump-recipe"][0],))
                 sys.exit(0)
+
+            if "--database" in optsd:
+                #print("Database mode selected (%s)!" % optsd["--database"][0])
+                # Check if the file already exists:
+                if os.path.isfile(optsd["--database"][0]):
+                    print("The database file already exists!")
+                    resp = raw_input("\nDo you want to overwrite %s? [y/N] > " % optsd["--database"][0])
+                    if resp.lower() != 'y':
+                        print("\nDatabase file %s NOT overwritten.\nExiting..." % optsd["--database"][0])
+                        sys.exit(0)
+                    else:
+                        print("\nOverwritting database file %s..." % optsd["--database"][0])
+                else:
+                    print("Creating database file %s.\n" % optsd["--database"][0])
+                    open(optsd["--database"][0], 'a').close() # Quick way to create empty file
 
             return options
         except FuzzException as e:
@@ -432,6 +448,9 @@ class CLParser:
 
         if "--interact" in optsd:
             options["interactive"] = True
+
+        if "--database" in optsd:
+            options["database"] = optsd['--database'][0]
 
     def _parse_scripts(self, optsd, options):
         '''

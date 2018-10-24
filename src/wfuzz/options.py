@@ -95,6 +95,7 @@ class FuzzSession(UserDict):
             compiled_filter=None,
             compiled_prefilter=None,
             compiled_printer=None,
+            database=None,
         )
 
     def update(self, options):

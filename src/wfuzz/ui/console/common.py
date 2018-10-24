@@ -43,6 +43,8 @@ usage = '''%s\n\nOptions:
 \t-h                        : This help
 \t--help                            : Advanced help
 \t--version                 : Wfuzz version details
+\t--database                : (beta) Database file to check and store results. If the file exists,
+\t                               it checks if the endpoint has been tested with the same wordlist before.
 \t-e <type>                 : List of available encoders/payloads/iterators/printers/scripts
 \t
 \t-c                        : Output with colors

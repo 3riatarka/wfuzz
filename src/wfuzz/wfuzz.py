@@ -8,6 +8,7 @@ from .exception import FuzzException, FuzzExceptBadInstall
 from .ui.console.mvc import Controller, KeyPress, View
 from .ui.console.common import help_banner2
 from .ui.console.clparser import CLParser
+from .ui.console.database import DatabaseHandler
 
 
 def main():
@@ -39,8 +40,19 @@ def main():
             printer = Facade().printers.get_plugin(session_options["console_printer"])(None)
         printer.header(fz.genReq.stats)
 
+        # Initialise database handler:
+        if session_options["database"]:
+            print("Database is %s\n" % session_options['database'])
+            # Get domain, URI, wordlists and positions:
+            domain = fz.genReq.seed.history.host
+            uri = fz.genReq.seed.history.path.split('FUZZ')[0]
+            wordlists = list()
+            request = fz.genReq.seed.history.url
+            print("La consulta %s se hace al dominio %s y URI %s" % (request, domain, uri))
+
         for res in fz:
             printer.result(res)
+
 
         printer.footer(fz.genReq.stats)
     except FuzzException as e:
