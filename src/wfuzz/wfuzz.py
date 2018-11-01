@@ -43,15 +43,30 @@ def main():
         # Initialise database handler:
         if session_options["database"]:
             print("Database is %s\n" % session_options['database'])
+            db = DatabaseHandler(session_options['database'])
+            db.connect()
+
             # Get domain, URI, wordlists and positions:
             domain = fz.genReq.seed.history.host
             uri = fz.genReq.seed.history.path.split('FUZZ')[0]
             wordlists = list()
+            for dic in session_options.data['payloads']:
+                wordlists.append(dic[1]['fn'])
             request = fz.genReq.seed.history.url
-            print("La consulta %s se hace al dominio %s y URI %s" % (request, domain, uri))
+
+            # Initialize database:
+            if db.checkIfDBIsEmpty():
+                db.createDatabase(domain)
+            else:
+                # Look for records of this query with the same wordlists
+                if db.checkRecord(domain, uri, request, wordlists):
+                    print("The database has already a record of %s" % request)
+                    exit(0)
+
 
         for res in fz:
             printer.result(res)
+
 
 
         printer.footer(fz.genReq.stats)

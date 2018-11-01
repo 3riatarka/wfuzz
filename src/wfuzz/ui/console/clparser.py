@@ -126,12 +126,12 @@ class CLParser:
                 # Check if the file already exists:
                 if os.path.isfile(optsd["--database"][0]):
                     print("The database file already exists!")
-                    resp = raw_input("\nDo you want to overwrite %s? [y/N] > " % optsd["--database"][0])
+                    resp = raw_input("\nDo you want to add information to %s? [y/N] > " % optsd["--database"][0])
                     if resp.lower() != 'y':
-                        print("\nDatabase file %s NOT overwritten.\nExiting..." % optsd["--database"][0])
+                        print("\nSelect another database file then.\nExiting...")
                         sys.exit(0)
                     else:
-                        print("\nOverwritting database file %s..." % optsd["--database"][0])
+                        print("\nAppending info to database file %s..." % optsd["--database"][0])
                 else:
                     print("Creating database file %s.\n" % optsd["--database"][0])
                     open(optsd["--database"][0], 'a').close() # Quick way to create empty file
