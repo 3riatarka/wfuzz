@@ -65,7 +65,8 @@ def main():
 
         for res in fz:
             printer.result(res)
-            db.write(res)
+            if session_options["database"]:
+                db.write(res)
 
         # If the fuzzing is complete, save it in the database as completed
         if session_options["database"]:
