@@ -1,0 +1,6 @@
+# System libraries needed for pycurl version 7.43.0.2: sudo apt install libcurl4-openssl-dev libssl-dev
+configparser==3.5.0
+future==0.17.1
+pkg-resources==0.0.0
+pycurl==7.43.0.2
+six==1.11.0
