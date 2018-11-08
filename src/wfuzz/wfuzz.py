@@ -16,11 +16,24 @@ def main():
     fz = None
     printer = None
     session_options = None
+    db = None
 
     try:
         # parse command line
         session_options = CLParser(sys.argv).parse_cl().compile()
         session_options["send_discarded"] = True
+
+        # Check database file, if enabled, before sending any request
+        if session_options["database"]:
+            hc = session_options['hc']
+            db = DatabaseHandler(session_options['database'], session_options['hc'],session_options['hl'],session_options['hw'],session_options['hh']) # Create database handler
+            db.connect() # connect to the database file (checking if the file exists)
+            db.checkDatabaseFile() # Check if it is a valid database
+            url = session_options.data["url"]
+            wordlists = [dic[1]['fn'] for dic in session_options.data['payloads']]
+            if db.checkQuery(url, wordlists):
+                print("This endpoint is already fuzzed with that wordlist(s)")
+                exit(0)
 
         # Create fuzzer's engine
         fz = Fuzzer(session_options)
@@ -42,30 +55,21 @@ def main():
 
         # Initialise database handler:
         if session_options["database"]:
-            print("Database is %s\n" % session_options['database'])
-            db = DatabaseHandler(session_options['database'])
-            db.connect()
+            # Get domain, URI, and wordlists:
+            db.domain = fz.genReq.seed.history.host
+            db.uri = fz.genReq.seed.history.path.split('FUZZ')[0]
 
-            # Get domain, URI, wordlists and positions:
-            domain = fz.genReq.seed.history.host
-            uri = fz.genReq.seed.history.path.split('FUZZ')[0]
-            wordlists = list()
-            for dic in session_options.data['payloads']:
-                wordlists.append(dic[1]['fn'])
-            request = fz.genReq.seed.history.url
-
-            # Initialize database:
+            # Initialize database if needed:
             if db.checkIfDBIsEmpty():
-                db.createDatabase(domain)
-            else:
-                # Look for records of this query with the same wordlists
-                if db.checkRecord(domain, uri, request, wordlists):
-                    print("The database has already a record of %s" % request)
-                    exit(0)
-
+                db.initializeDatabase()
 
         for res in fz:
             printer.result(res)
+            db.write(res)
+
+        # If the fuzzing is complete, save it in the database as completed
+        if session_options["database"]:
+            db.registerQuery(url, wordlists)
 
 
 
