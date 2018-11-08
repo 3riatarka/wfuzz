@@ -25,7 +25,6 @@ def main():
 
         # Check database file, if enabled, before sending any request
         if session_options["database"]:
-            hc = session_options['hc']
             db = DatabaseHandler(session_options['database'], session_options['hc'],session_options['hl'],session_options['hw'],session_options['hh']) # Create database handler
             db.connect() # connect to the database file (checking if the file exists)
             db.checkDatabaseFile() # Check if it is a valid database
