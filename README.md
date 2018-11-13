@@ -8,7 +8,7 @@ wfuzz -w wordlist.txt --database database.ctb http://domain.tld/FUZZ
 ```
 The script tries to create the file if it doesn't exist. If it already exists, check if it is a readable/writable SQlite3 file.
 
-The output filters (hc, hl, hw and hh) works here too: those records which match the filter won't be written to the database.
+The output filters (hc, hl, hw and hh) work here too: those records which match the filter won't be written to the database.
 
 This option impacts slightly the performance of the original program.
 
