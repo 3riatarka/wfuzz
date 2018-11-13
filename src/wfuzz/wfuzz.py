@@ -52,9 +52,9 @@ def main():
             printer = Facade().printers.get_plugin(session_options["console_printer"])(None)
         printer.header(fz.genReq.stats)
 
-        # Initialise database handler:
+        # Create database handler:
         if session_options["database"]:
-            # Get domain, URI, and wordlists:
+            # Set domain and URI:
             db.domain = fz.genReq.seed.history.host
             db.uri = fz.genReq.seed.history.path.split('FUZZ')[0]
 
@@ -70,8 +70,6 @@ def main():
         # If the fuzzing is complete, save it in the database as completed
         if session_options["database"]:
             db.registerQuery(url, wordlists)
-
-
 
         printer.footer(fz.genReq.stats)
     except FuzzException as e:

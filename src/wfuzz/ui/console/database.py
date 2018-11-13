@@ -66,7 +66,6 @@ class DatabaseHandler(object):
     def checkQuery(self, url, wordlists):
         if self.new_database == 1:
             return 0 # There are no records yet
-        #queries_text = self.cursor.execute("SELECT txt FROM node WHERE name = 'completed_queries';").fetchall()[0][0].encode('utf-8').split('\n')
         queries_text = "".join(map(str, chain.from_iterable(self.cursor.execute("SELECT txt FROM node WHERE name = 'completed_queries';").fetchall()))).split('\n')
         self.wordlists = wordlists
         wordlist = ",".join(wordlists)
@@ -127,13 +126,14 @@ class DatabaseHandler(object):
             create_node = False
 
         if str(res.code)[0] == '2': # OK
-            text = '<rich_text link="webs %s">%s\n</rich_text>' % (htmlSafe(res.url), htmlSafe(res.url))
+            text = '<rich_text family="monospace">%06d:\t</rich_text><rich_text family="monospace" link="webs %s">%s\n</rich_text>' % (res.nres, htmlSafe(res.url)[:60], htmlSafe(res.url)[:60])
         elif str(res.code)[0] == '3': # Redirection
-            text = '<rich_text>%s -> </rich_text><rich_text link="webs %s">%s\n</rich_text>' % (htmlSafe(res.url), htmlSafe(res.history.headers.response['Location'].encode('utf-8')), htmlSafe(res.history.headers.response['Location'].encode('utf-8')))
+            text = '<rich_text family="monospace">%06d:\t%s\t\t->\t\t</rich_text><rich_text family="monospace" link="webs %s">%s\n</rich_text>' % (res.nres, htmlSafe(res.url)[:60], htmlSafe(res.history.headers.response['Location'].encode('utf-8')), htmlSafe(res.history.headers.response['Location'].encode('utf-8')))
         else:
-            text = '<rich_text>%s\n</rich_text>' % (htmlSafe(res.url))
+            text = '<rich_text family="monospace">%06d:\t%s\n</rich_text>' % (res.nres, htmlSafe(res.url)[:60])
 
         if create_node:
+            text = "<rich_text family=\"monospace\">%s\n  ID: \t\t\t\t\t\t\t Payload\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[Redirects to]\n%s\n</rich_text>%s" % ("="*90, "="*90, text)
             code_node = self.createNode(self.nextNode(), self.uri_node, res.code, text)
         else:
             code_node = "".join(map(str, chain.from_iterable(self.cursor.execute("SELECT node.node_id FROM node, children WHERE node.node_id = children.node_id AND children.father_id = ? AND node.name = ?;",(self.uri_node, res.code)).fetchall())))
@@ -141,58 +141,11 @@ class DatabaseHandler(object):
             prev_text = re.findall('<node><rich_text.*?>(.*?)</rich_text></node>', code_text, re.S)
             if text in code_text:
                 return 0 # Endpoint already registered
-            code_text = re.sub('<node><rich_text>(.*?)</rich_text></node>', '<node><rich_text>%s</rich_text>%s</node>' % (prev_text[0],text), code_text,1,re.DOTALL)
+            code_text = re.sub('<node><rich_text family="monospace">(.*?)</rich_text></node>', '<node><rich_text family="monospace">%s</rich_text>%s</node>' % (prev_text[0],text), code_text,1,re.DOTALL)
 
             self.cursor.execute("UPDATE node SET txt = ? WHERE node_id = ?;", (code_text, code_node))
             self.connection.commit()
 
-    def checkRecord(self, domain, uri, query):
-        # Check if the domain is a node in the database
-        domain_query = (domain, )
-        domain_node = self.cursor.execute("SELECT node_id FROM node WHERE name = ?;", domain_query).fetchall() # Devuelve una lista con tuplas!
-        if not domain_node:
-            return 0
-        elif len(domain_node) != 1:
-            raise DatabaseException("The first level node '%s' is more than once in the database. Exiting..." % domain)
-        domain_node = domain_node[0][0]
-
-        # Check if the URI is a node as a domain child
-        uri_query = (uri,)
-        uri_node = self.cursor.execute("SELECT node_id FROM node WHERE name = ?;", uri_query).fetchall()[0][0]
-        domain_childs = self.cursor.execute("SELECT node_id FROM children WHERE father_id = %d" % domain_node).fetchall()
-
-        uri_found = 0
-        for child in domain_childs:
-            if uri_node == child[0]:
-                uri_found = 1
-                break
-
-        if uri_found == 0:
-            return 0
-
-        # Fix to set a FUZZ node below the URI
-        fuzz_query = ('FUZZ',)
-        fuzz_node = self.cursor.execute("SELECT node_id FROM children WHERE father_id = %d" % uri_node).fetchall()[0][0]
-
-        # Check if the query is already registered in the tuple domain+uri, worldlists
-        fuzz_child_nodes = self.cursor.execute("SELECT node_id FROM children WHERE father_id = %d" % fuzz_node).fetchall()
-            # Convert to list:
-        child_list = list()
-        for node in fuzz_child_nodes:
-            child_list.append(node[0])
-        fuzz_child_nodes = child_list
-
-        query_query = ('query',)
-        query_node_list = self.cursor.execute("SELECT node_id FROM node WHERE name = ?;", query_query).fetchall()
-        query_node = ''
-        for node in query_node_list:
-            if node[0] in fuzz_child_nodes:
-                query_node = node[0]
-        if query_node == '':
-            return 2 # No existe el nodo "query" dentro del FUZZ del dominio? > Error
-
-        query_text = self.cursor.execute("SELECT txt FROM node WHERE node_id = %d;", query_node).fetchall() # Por que falla?
-        print(query_text)
 
     def createDatabase(self):
         self.cursor.execute("PRAGMA foreign_keys=OFF;")
@@ -253,18 +206,17 @@ sequence INTEGER
         self.connection.commit()
 
     def initializeDatabase(self):
-        # Parent node is the domain - USAR FUZZREQUESTPARSE
+        # Parent node is the domain
         epoc = round(time.time(), 5)
         node_query = (self.domain,epoc,epoc)
         aux_query = (epoc,epoc)
-        self.cursor.execute("INSERT INTO node VALUES(1, ?, '<?xml version=\"1.0\" ?><node><rich_text></rich_text></node>','custom-colors','',0,1,0,0,0,0,?,?);",node_query)
+        self.cursor.execute("INSERT INTO node VALUES(1, ?, '<?xml version=\"1.0\" ?><node><rich_text family=\"monospace\"></rich_text></node>','custom-colors','',0,1,0,0,0,0,?,?);",node_query)
         self.cursor.execute("INSERT INTO children VALUES(1,0,1);")
         self.cursor.execute("INSERT INTO node VALUES(2, 'completed_queries', '','custom-colors','',0,1,0,0,0,0,?,?);",aux_query)
         self.cursor.execute("INSERT INTO children VALUES(2,-1,2);") # -1 as parent node to keep this one hidden
         self.connection.commit()
 
     def createNode(self, id, parent, node_name, node_text):
-        # parent es un ID, o el nombre?
         if id <= 1:
             raise DatabaseException("Database node creation failed")
         sequence = "".join(map(str, chain.from_iterable(self.cursor.execute("SELECT sequence FROM children WHERE father_id = ? ORDER BY sequence DESC LIMIT 1", (parent,)))))
@@ -276,7 +228,7 @@ sequence INTEGER
             if 'rich_text' in node_text:
                 text = "<?xml version=\"1.0\" ?><node>%s</node>" % node_text
             else:
-                text = "<?xml version=\"1.0\" ?><node><rich_text>%s</rich_text></node>" % node_text # Backwards compatibility, remove
+                text = "<?xml version=\"1.0\" ?><node><rich_text family=\"monospace\">%s</rich_text></node>" % node_text # Backwards compatibility, remove
             node_query = (id,node_name,text,epoc,epoc)
             self.cursor.execute("INSERT INTO node VALUES(?,?,?,'custom-colors','',0,1,0,0,0,0,?,?);",node_query)
 
