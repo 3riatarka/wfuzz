@@ -14,7 +14,7 @@ This option impacts slightly the performance of the original program.
 
 # DISCLAIMER
 
-CherryTree v0.38.6 adds two columns to the node table of its database. If you use this fork to append information to a .ctb database created with CherryTree v<0.38.6 __IT CAN RENDER THE FILE INCONSISTENT__. 
+CherryTree v0.38.6 adds two columns to the node table of its database. If you use this fork to append information to a .ctb database created with CherryTree version < 0.38.6 __IT CAN RENDER THE FILE INCONSISTENT__. 
 
 You can still recover the information stored with an sqlite3 client, but please, 
 __DO NOT USE THIS WITH CHERRYTREE FILES PRIOR TO VERSION 0.38.6__.
