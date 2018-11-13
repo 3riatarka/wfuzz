@@ -225,10 +225,7 @@ sequence INTEGER
 
         try:
             epoc = round(time.time(), 5)
-            if 'rich_text' in node_text:
-                text = "<?xml version=\"1.0\" ?><node>%s</node>" % node_text
-            else:
-                text = "<?xml version=\"1.0\" ?><node><rich_text family=\"monospace\">%s</rich_text></node>" % node_text # Backwards compatibility, remove
+            text = "<?xml version=\"1.0\" ?><node>%s</node>" % node_text
             node_query = (id,node_name,text,epoc,epoc)
             self.cursor.execute("INSERT INTO node VALUES(?,?,?,'custom-colors','',0,1,0,0,0,0,?,?);",node_query)
 
