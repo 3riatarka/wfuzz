@@ -2,7 +2,7 @@
 
 This fork implements the `database` option, which saves some of the information outputted to a SQlite3.
 This file can (and should) be opened with [CherryTree](https://www.giuspen.com/cherrytree/) v0.38.6 or greater.
-To use it, use the database option and pass the database file as an argument:
+To use it, set the database option and pass the database file as an argument:
 ```
 wfuzz -w wordlist.txt --database database.ctb http://domain.tld/FUZZ
 ```
