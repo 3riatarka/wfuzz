@@ -1,3 +1,24 @@
+# About this fork
+
+This fork implements the `database` option, which saves some of the information outputted to a SQlite3.
+This file can (and should) be opened with [CherryTree](https://www.giuspen.com/cherrytree/) v0.38.6 or greater.
+To use it, use the database option and pass the database file as an argument:
+```
+wfuzz -w wordlist.txt --database database.ctb http://domain.tld/FUZZ
+```
+The script tries to create the file if it doesn't exist. If it already exists, check if it is a readable/writable SQlite3 file.
+
+The output filters (hc, hl, hw and hh) works here too: those records which match the filter won't be written to the database.
+
+This option impacts slightly the performance of the original program.
+
+# DISCLAIMER
+
+CherryTree v0.38.6 adds two columns to the node table of its database. If you use this fork to append information to a .ctb database created with CherryTree v<0.38.6 __IT CAN RENDER THE FILE INCONSISTENT__. 
+
+You can still recover the information stored with an sqlite3 client, but please, 
+__DO NOT USE THIS WITH CHERRYTREE FILES PRIOR TO VERSION 0.38.6__.
+
 # Wfuzz - The Web Fuzzer
 
 <a href="https://pypi.python.org/pypi/wfuzz"><img src="https://img.shields.io/pypi/v/wfuzz.svg"></a>
