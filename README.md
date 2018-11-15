@@ -19,6 +19,12 @@ CherryTree v0.38.6 adds two columns to the node table of its database. If you us
 You can still recover the information stored with an sqlite3 client, but please, 
 __DO NOT USE THIS WITH CHERRYTREE FILES PRIOR TO VERSION 0.38.6__.
 
+### To do list:
+ - [x] First working version
+ - [x] Fixed recursive queries
+ - [ ] Test output when using payloads in other places (mid-url, post body, etc). At least add some restrictions to avoid database usage in these cases.
+ - [ ] Improve output formatting: directory tree format (each folder is a node)
+
 # Wfuzz - The Web Fuzzer
 
 <a href="https://pypi.python.org/pypi/wfuzz"><img src="https://img.shields.io/pypi/v/wfuzz.svg"></a>
