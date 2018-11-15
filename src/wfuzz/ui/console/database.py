@@ -110,12 +110,14 @@ class DatabaseHandler(object):
         # Check if the response is filtered
         if res.code in self.hc or res.lines in self.hl or res.words in self.hw or res.chars in self.hh:
             return 0
+
+        # Set domain and URI:
+        self.domain = res.history.host
+        self.uri = res.url.split(self.domain)[1].rsplit('/',1)[0]+'/'
         # Check if the domain already exists in the database, else create it:
-        if self.domain_node == 0:
-            self.getDomainNode()
+        self.getDomainNode()
         # Check if the URI exists in the domain node, else create it:
-        if self.uri_node == 0:
-            self.getUriNode()
+        self.getUriNode()
 
         self.uri_childs = [int(item[0].encode('utf-8')) for item in self.cursor.execute(
             "SELECT node.name FROM node, children WHERE node.node_id = children.node_id AND children.father_id = ?;",
