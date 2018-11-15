@@ -54,8 +54,6 @@ def main():
 
         # Create database handler:
         if session_options["database"]:
-            db.domain = fz.genReq.seed.history.host
-            db.uri = fz.genReq.seed.history.path.split('FUZZ')[0]
             # Initialize database if needed:
             if db.checkIfDBIsEmpty():
                 db.initializeDatabase()
